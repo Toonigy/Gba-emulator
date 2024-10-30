@@ -13,6 +13,7 @@ const screenBuffer = new Uint32Array(SCREEN_WIDTH * SCREEN_HEIGHT);
 
 // Global variables
 let isRunning = false;
+let romLoaded = false;
 
 // Load ROM file
 function loadROM() {
@@ -28,6 +29,7 @@ function handleFileSelect(event) {
     reader.onload = function (e) {
       const romData = new Uint8Array(e.target.result); // Load ROM as Uint8Array
       initializeMemory(romData); // Initialize memory with ROM data from memory.js
+      romLoaded = true; // Mark ROM as loaded
       startEmulator();
     };
     reader.readAsArrayBuffer(file);
@@ -36,12 +38,12 @@ function handleFileSelect(event) {
 
 // Start the emulator
 function startEmulator() {
-  if (!rom) {
+  if (!romLoaded) {
     console.log("No ROM loaded");
     return;
   }
   isRunning = true;
-  emulatorLoop();
+  emulatorLoop(); // Start the main emulator loop
 }
 
 // Main emulator loop
