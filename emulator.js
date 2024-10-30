@@ -1,96 +1,104 @@
 // emulator.js
 
-// Define canvas and 2D context for the display
+// Canvas setup for display
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
-// Screen dimensions for GBA
 const SCREEN_WIDTH = 240;
 const SCREEN_HEIGHT = 160;
 
-// Memory buffer to represent the GBA screen
+// Create a screen buffer
 const screenBuffer = new Uint32Array(SCREEN_WIDTH * SCREEN_HEIGHT);
+
+// Memory setup
+const MEMORY_SIZE = 0x02000000; // GBA has up to 32 MB addressable memory
+let memory = new Uint8Array(MEMORY_SIZE);
 
 // Global variables
 let romData = null;
 let isRunning = false;
 
-// Function to load ROM into memory
+// Load ROM file
 function loadROM() {
   const fileInput = document.getElementById("fileInput");
   fileInput.click();
 }
 
-// Function to handle file selection for ROM
+// Handle ROM file selection
 function handleFileSelect(event) {
   const file = event.target.files[0];
   if (file) {
     const reader = new FileReader();
     reader.onload = function (e) {
-      romData = new Uint8Array(e.target.result); // Load ROM as byte array
+      romData = new Uint8Array(e.target.result); // Load ROM into Uint8Array
+      initializeMemory();
       startEmulator();
     };
     reader.readAsArrayBuffer(file);
   }
 }
 
-// Main emulator start function
+// Initialize memory with the loaded ROM
+function initializeMemory() {
+  if (romData) {
+    // Load ROM into memory starting at 0x08000000 (GBA ROM region start)
+    memory.set(romData, 0x08000000);
+    console.log("ROM loaded into memory");
+  }
+}
+
+// Start the emulator
 function startEmulator() {
   if (!romData) {
     console.log("No ROM loaded");
     return;
   }
   isRunning = true;
-  console.log("Emulator started with ROM size:", romData.length);
-  emulatorLoop(); // Start the main loop
+  emulatorLoop();
 }
 
 // Main emulator loop
 function emulatorLoop() {
   if (!isRunning) return;
 
-  // This is where the CPU, memory, and display emulation would go
+  // Placeholder CPU cycle and graphics update
   cpuCycle();
   updateDisplay();
 
-  // Loop with a requestAnimationFrame for smoother rendering
+  // Loop with requestAnimationFrame
   requestAnimationFrame(emulatorLoop);
 }
 
-// Placeholder for CPU cycle (ARM CPU emulation goes here)
+// Placeholder for CPU emulation
 function cpuCycle() {
-  // Placeholder - In a full emulator, this would fetch, decode, and execute instructions
-  // For now, we can just simulate changing some screen pixels
-  for (let i = 0; i < screenBuffer.length; i++) {
-    screenBuffer[i] = Math.random() * 0xffffff; // Random colors as placeholder
+  // This is where CPU emulation would happen.
+  // For now, just display ROM data as colors (very simplified)
+  for (let i = 0; i < screenBuffer.length && i < romData.length; i++) {
+    const color = romData[i] | (romData[i + 1] << 8) | (romData[i + 2] << 16);
+    screenBuffer[i] = color;
   }
 }
 
-// Update the display
+// Update display function
 function updateDisplay() {
-  // Create an ImageData object from the screenBuffer
   const imageData = ctx.createImageData(SCREEN_WIDTH, SCREEN_HEIGHT);
   for (let i = 0; i < screenBuffer.length; i++) {
     const color = screenBuffer[i];
-    imageData.data[i * 4] = (color >> 16) & 0xff; // Red
+    imageData.data[i * 4] = (color >> 16) & 0xff;    // Red
     imageData.data[i * 4 + 1] = (color >> 8) & 0xff; // Green
-    imageData.data[i * 4 + 2] = color & 0xff; // Blue
-    imageData.data[i * 4 + 3] = 0xff; // Alpha
+    imageData.data[i * 4 + 2] = color & 0xff;        // Blue
+    imageData.data[i * 4 + 3] = 0xff;                // Alpha
   }
-
-  // Draw the ImageData to the canvas
   ctx.putImageData(imageData, 0, 0);
 }
 
-// Control buttons (just a simple structure for start/pause)
+// Control buttons (simple start/pause)
 document.addEventListener("keydown", function (event) {
   switch (event.key) {
     case "Enter":
       isRunning = !isRunning;
-      if (isRunning) {
-        emulatorLoop();
-      }
+      if (isRunning) emulatorLoop();
       break;
     case "Escape":
       isRunning = false;
