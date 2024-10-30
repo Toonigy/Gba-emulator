@@ -4,11 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GBA Emulator</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <canvas id="screen" width="240" height="160"></canvas>
-  <button onclick="loadROM()">Load ROM</button>
-  <input type="file" id="fileInput" onchange="handleFileSelect(event)" />
+  <div class="container">
+    <h1>GBA Emulator</h1>
+    
+    <!-- Canvas for emulator display -->
+    <canvas id="screen" width="240" height="160"></canvas>
+    
+    <!-- File input for ROMs with label styling -->
+    <input type="file" id="fileInput" accept=".gba" onchange="handleFileSelect(event)">
+    <label for="fileInput" class="file-label">Load ROM</label>
+    
+    <!-- Emulator control buttons -->
+    <button onclick="startEmulator()">Start</button>
+    <button onclick="resetMemory()">Reset</button>
+    
+    <!-- Footer or instructions -->
+    <div class="footer">
+      <p>Use Enter to start/pause, and Escape to stop the emulator.</p>
+    </div>
+  </div>
+
   <script src="emulator.js"></script>
 </body>
 </html>
