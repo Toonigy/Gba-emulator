@@ -8,15 +8,10 @@ ctx.imageSmoothingEnabled = false;
 const SCREEN_WIDTH = 240;
 const SCREEN_HEIGHT = 160;
 
-// Create a screen buffer
+// Screen buffer for graphics output
 const screenBuffer = new Uint32Array(SCREEN_WIDTH * SCREEN_HEIGHT);
 
-// Memory setup
-const MEMORY_SIZE = 0x02000000; // GBA has up to 32 MB addressable memory
-let memory = new Uint8Array(MEMORY_SIZE);
-
 // Global variables
-let romData = null;
 let isRunning = false;
 
 // Load ROM file
@@ -31,26 +26,17 @@ function handleFileSelect(event) {
   if (file) {
     const reader = new FileReader();
     reader.onload = function (e) {
-      romData = new Uint8Array(e.target.result); // Load ROM into Uint8Array
-      initializeMemory();
+      const romData = new Uint8Array(e.target.result); // Load ROM as Uint8Array
+      initializeMemory(romData); // Initialize memory with ROM data from memory.js
       startEmulator();
     };
     reader.readAsArrayBuffer(file);
   }
 }
 
-// Initialize memory with the loaded ROM
-function initializeMemory() {
-  if (romData) {
-    // Load ROM into memory starting at 0x08000000 (GBA ROM region start)
-    memory.set(romData, 0x08000000);
-    console.log("ROM loaded into memory");
-  }
-}
-
 // Start the emulator
 function startEmulator() {
-  if (!romData) {
+  if (!rom) {
     console.log("No ROM loaded");
     return;
   }
@@ -62,25 +48,27 @@ function startEmulator() {
 function emulatorLoop() {
   if (!isRunning) return;
 
-  // Placeholder CPU cycle and graphics update
+  // Run a CPU cycle and update display
   cpuCycle();
   updateDisplay();
 
-  // Loop with requestAnimationFrame
+  // Request next frame
   requestAnimationFrame(emulatorLoop);
 }
 
-// Placeholder for CPU emulation
+// CPU cycle (placeholder logic using memory read/write)
 function cpuCycle() {
-  // This is where CPU emulation would happen.
-  // For now, just display ROM data as colors (very simplified)
-  for (let i = 0; i < screenBuffer.length && i < romData.length; i++) {
-    const color = romData[i] | (romData[i + 1] << 8) | (romData[i + 2] << 16);
-    screenBuffer[i] = color;
+  // Example: Read from VRAM and write to RAM for demonstration
+  const exampleValue = readMemory(0x06000000); // Read from VRAM in memory.js
+  writeMemory(0x02000000, exampleValue); // Write to RAM in memory.js
+
+  // Placeholder: Fill screen buffer with example value
+  for (let i = 0; i < screenBuffer.length; i++) {
+    screenBuffer[i] = exampleValue | (exampleValue << 8) | (exampleValue << 16);
   }
 }
 
-// Update display function
+// Update display based on screen buffer content
 function updateDisplay() {
   const imageData = ctx.createImageData(SCREEN_WIDTH, SCREEN_HEIGHT);
   for (let i = 0; i < screenBuffer.length; i++) {
@@ -93,7 +81,7 @@ function updateDisplay() {
   ctx.putImageData(imageData, 0, 0);
 }
 
-// Control buttons (simple start/pause)
+// Control buttons to start/stop emulator
 document.addEventListener("keydown", function (event) {
   switch (event.key) {
     case "Enter":
